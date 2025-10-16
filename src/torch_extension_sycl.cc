@@ -21,9 +21,6 @@ limitations under the License.
 #include "sgl_kernel_torch_shim.h"
 
 TORCH_LIBRARY_FRAGMENT(sgl_kernel, m) {
-  /*
-   * From csrc/gemm
-   */
   m.def("awq_dequantize(Tensor qweight, Tensor scales, Tensor qzeros) -> Tensor");
   m.impl("awq_dequantize", torch::kXPU, &awq_dequantize);
 
@@ -50,6 +47,15 @@ TORCH_LIBRARY_FRAGMENT(sgl_kernel, m) {
 
   m.def("topk_softmax(Tensor! topk_weights, Tensor! topk_indices, Tensor gating_output, bool renormalize) -> ()");
   m.impl("topk_softmax", torch::kXPU, &at::native::xpu::topk_softmax);
+
+  m.def(
+      "moe_align_block_size(Tensor topk_ids, int num_experts, int block_size, Tensor! sorted_token_ids, Tensor! "
+      "experts_ids, Tensor! num_tokens_post_pad, Tensor! cumsum_buffer, bool "
+      "pad_sorted_token_ids) -> ()");
+  m.impl("moe_align_block_size", torch::kXPU, &moe_align_block_size);
+
+  m.def("moe_sum(Tensor input, Tensor! output) -> ()");
+  m.impl("moe_sum", torch::kXPU, &moe_sum);
 
   //   m.def(
   //       "fp8_blockwise_scaled_mm(Tensor mat_a, Tensor mat_b, Tensor scales_a, Tensor scales_b, ScalarType out_dtype,
